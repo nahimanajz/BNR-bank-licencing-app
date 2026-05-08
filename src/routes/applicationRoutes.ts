@@ -16,19 +16,17 @@ import {
   feedbackSchema,
   decideSchema,
 } from '../validators/applicationValidator';
-import logger from '../config/logger';
 
 const applicationRepository = new ApplicationRepository(Application);
 const auditLogRepository = new AuditLogRepository(AuditLog);
 const stateMachineService = new StateMachineService();
-const auditService = new AuditService(auditLogRepository, logger);
+const auditService = new AuditService(auditLogRepository);
 const authorizationService = new AuthorizationService(applicationRepository);
 const applicationService = new ApplicationService(
   applicationRepository,
   auditService,
   stateMachineService,
-  authorizationService,
-  logger
+  authorizationService
 );
 const controller = new ApplicationController(applicationService);
 

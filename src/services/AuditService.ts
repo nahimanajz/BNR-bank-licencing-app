@@ -1,5 +1,4 @@
 import { AuditLogRepository } from '../repositories/AuditLogRepository';
-import { Logger } from 'winston';
 
 interface AuditParams {
   userId: number;
@@ -12,11 +11,9 @@ interface AuditParams {
 
 export class AuditService {
   private auditLogRepository: AuditLogRepository;
-  private logger: Logger;
 
-  constructor(auditLogRepository: AuditLogRepository, logger: Logger) {
+  constructor(auditLogRepository: AuditLogRepository) {
     this.auditLogRepository = auditLogRepository;
-    this.logger = logger;
   }
 
   async log(params: AuditParams): Promise<void> {
@@ -27,12 +24,6 @@ export class AuditService {
       before_state: params.beforeState,
       after_state: params.afterState,
       details: params.details ?? null,
-    });
-
-    this.logger.info('Audit logged', {
-      action: params.action,
-      applicationId: params.applicationId,
-      userId: params.userId,
     });
   }
 }
