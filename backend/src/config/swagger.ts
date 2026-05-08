@@ -74,12 +74,16 @@ const options: swaggerJsdoc.Options = {
             success: { type: 'boolean', example: true },
             data: {
               type: 'object',
+              description: 'Flat object — token + user fields merged at the top level',
               properties: {
+                id: { type: 'integer', example: 1 },
+                email: { type: 'string', format: 'email', example: 'alice@bank.rw' },
+                full_name: { type: 'string', example: 'Alice Mutoni' },
+                role: { $ref: '#/components/schemas/UserRole' },
                 token: {
                   type: 'string',
                   example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
                 },
-                user: { $ref: '#/components/schemas/User' },
               },
             },
           },
@@ -124,9 +128,9 @@ const options: swaggerJsdoc.Options = {
         },
         TransitionRequest: {
           type: 'object',
-          required: ['newState'],
+          required: ['newStatus', 'version'],
           properties: {
-            newState: { $ref: '#/components/schemas/ApplicationStatus' },
+            newStatus: { $ref: '#/components/schemas/ApplicationStatus' },
             version: {
               type: 'integer',
               description: 'Current version for optimistic concurrency control',
@@ -136,7 +140,7 @@ const options: swaggerJsdoc.Options = {
         },
         DecideRequest: {
           type: 'object',
-          required: ['decision'],
+          required: ['decision', 'notes', 'version'],
           properties: {
             decision: {
               type: 'string',
@@ -144,16 +148,18 @@ const options: swaggerJsdoc.Options = {
               example: 'APPROVE',
             },
             notes: { type: 'string', example: 'All requirements met.' },
+            version: { type: 'integer', example: 1 },
           },
         },
         FeedbackRequest: {
           type: 'object',
-          required: ['feedback'],
+          required: ['feedback', 'version'],
           properties: {
             feedback: {
               type: 'string',
               example: 'Please provide the board resolution document.',
             },
+            version: { type: 'integer', example: 1 },
           },
         },
 
@@ -163,11 +169,14 @@ const options: swaggerJsdoc.Options = {
           properties: {
             id: { type: 'integer', example: 1 },
             application_id: { type: 'integer', example: 1 },
-            file_name: { type: 'string', example: 'board_resolution.pdf' },
-            file_path: { type: 'string', example: '/uploads/1/board_resolution.pdf' },
-            file_type: { type: 'string', example: 'application/pdf' },
-            uploaded_by: { type: 'integer', example: 1 },
+            filename: { type: 'string', example: 'v1_1715000000000_board_resolution.pdf', description: 'Internal storage filename' },
+            original_name: { type: 'string', example: 'board_resolution.pdf', description: 'Original filename from the upload' },
+            file_size: { type: 'integer', example: 204800, description: 'File size in bytes' },
+            mime_type: { type: 'string', nullable: true, example: 'application/pdf' },
+            uploader_id: { type: 'integer', example: 1 },
+            version: { type: 'integer', example: 1, description: 'Upload version for this application' },
             created_at: { type: 'string', format: 'date-time' },
+            updated_at: { type: 'string', format: 'date-time' },
           },
         },
 
@@ -599,14 +608,14 @@ const options: swaggerJsdoc.Options = {
       },
 
       // ── Documents ─────────────────────────────────────────────────────
-      '/documents/{applicationId}': {
+      '/applications/{id}/documents': {
         get: {
           tags: ['Documents'],
           summary: 'List documents for an application',
           security: [{ bearerAuth: [] }],
           parameters: [
             {
-              name: 'applicationId',
+              name: 'id',
               in: 'path',
               required: true,
               schema: { type: 'integer' },
@@ -641,7 +650,7 @@ const options: swaggerJsdoc.Options = {
           security: [{ bearerAuth: [] }],
           parameters: [
             {
-              name: 'applicationId',
+              name: 'id',
               in: 'path',
               required: true,
               schema: { type: 'integer' },
@@ -689,15 +698,15 @@ const options: swaggerJsdoc.Options = {
       },
 
       // ── Audit ─────────────────────────────────────────────────────────
-      '/audit/{applicationId}': {
+      '/audit/applications/{id}': {
         get: {
           tags: ['Audit'],
-          summary: 'Get audit trail for an application',
-          description: 'Returns all state-change events ordered by time ascending.',
+          summary: 'Get audit trail for an application (ADMIN or REVIEWER)',
+          description: 'Returns all state-change events for an application ordered by time descending. ADMIN may also use GET /audit?applicationId= to query by query param.',
           security: [{ bearerAuth: [] }],
           parameters: [
             {
-              name: 'applicationId',
+              name: 'id',
               in: 'path',
               required: true,
               schema: { type: 'integer' },
