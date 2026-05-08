@@ -792,12 +792,54 @@ describe('Concurrent Update Handling', () => {
   "library": "React 18+",
   "data-fetching": "TanStack Query (React Query) 5.x",
   "http-client": "Axios",
-  "styling": "CSS Modules / Tailwind (optional)",
+  "styling": "TailwindCSS (required)",
   "state-management": "Context API only (NO Redux)",
   "forms": "React Hook Form (optional)",
   "testing": "Jest + React Testing Library"
 }
 ```
+
+---
+
+### BNR Brand Colors (https://www.bnr.rw)
+
+Use these in `tailwind.config.ts` under `theme.extend.colors`:
+
+```typescript
+// tailwind.config.ts
+import type { Config } from 'tailwindcss';
+
+const config: Config = {
+  content: ['./src/**/*.{ts,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        bnr: {
+          teal:      '#08beab',
+          cyan:      '#0baccc',
+          blue:      '#0d6efd',
+          'blue-dark': '#084298',
+          gold:      '#ffc107',
+          dark:      '#1c1c27',
+          gray:      '#212529',
+          light:     '#f8f9fa',
+        },
+      },
+    },
+  },
+  plugins: [],
+};
+
+export default config;
+```
+
+**Usage conventions:**
+- Primary actions / links → `bg-bnr-teal`, `text-bnr-teal`
+- Secondary / info → `bg-bnr-cyan`, `text-bnr-blue`
+- Headings / nav background → `bg-bnr-dark text-white`
+- Accent / badges → `bg-bnr-gold text-bnr-dark`
+- Page backgrounds → `bg-bnr-light`
+- Body text → `text-bnr-gray`
 
 ---
 
