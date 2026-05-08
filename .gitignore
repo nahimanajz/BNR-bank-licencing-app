@@ -1,11 +1,1 @@
-node_modules/
-dist/
-.env
-data/files/*
-!data/files/.gitkeep
-*.log
-coverage/
 *.md
-.claude
-pnpm-lock.yaml
-package-lock.json
