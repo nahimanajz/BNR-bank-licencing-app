@@ -3,7 +3,6 @@ import { AuditService } from './AuditService';
 import { StateMachineService } from './StateMachineService';
 import { AuthorizationService } from './AuthorizationService';
 import { AuthorizationError } from '../utils/errors';
-import { Logger } from 'winston';
 import { Application } from '../models/index';
 
 interface CreateApplicationParams {
@@ -16,20 +15,17 @@ export class ApplicationService {
   private auditService: AuditService;
   private stateMachine: StateMachineService;
   private authorizationService: AuthorizationService;
-  private logger: Logger;
 
   constructor(
     applicationRepository: ApplicationRepository,
     auditService: AuditService,
     stateMachine: StateMachineService,
-    authorizationService: AuthorizationService,
-    logger: Logger
+    authorizationService: AuthorizationService
   ) {
     this.applicationRepository = applicationRepository;
     this.auditService = auditService;
     this.stateMachine = stateMachine;
     this.authorizationService = authorizationService;
-    this.logger = logger;
   }
 
   async createApplication(params: CreateApplicationParams): Promise<Application> {
@@ -47,7 +43,6 @@ export class ApplicationService {
       afterState: 'DRAFT',
     });
 
-    this.logger.info('Application created', { applicationId: app.id, userId: params.applicant_id });
     return app;
   }
 
@@ -89,7 +84,6 @@ export class ApplicationService {
       afterState: newStatus,
     });
 
-    this.logger.info('Application transitioned', { applicationId, from: app.status, to: newStatus, userId });
     return updated;
   }
 
@@ -115,7 +109,6 @@ export class ApplicationService {
       details: { feedback },
     });
 
-    this.logger.info('Feedback provided', { applicationId, userId });
     return updated;
   }
 
@@ -142,8 +135,6 @@ export class ApplicationService {
       details: { notes },
     });
 
-    this.logger.info('Application decided', { applicationId, decision: nextStatus, userId });
     return updated;
   }
-
 }
