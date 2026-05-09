@@ -1,9 +1,11 @@
 'use client';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 import { useApplication } from '@/hooks/useApplications';
 import { useDocuments } from '@/hooks/useDocuments';
 import { useAuth } from '@/hooks/useAuth';
 import { StateTransitionButton } from '@/components/Application/StateTransitionButton';
+import { auditService } from '@/services/audit.service';
 import { DocumentList } from '@/components/Documents/DocumentList';
 import { DocumentUpload } from '@/components/Documents/DocumentUpload';
 import { FeedbackDisplay } from '@/components/Feedback/FeedbackDisplay';
@@ -17,6 +19,11 @@ export const ApplicationDetailView = ({ id }: { id: number }) => {
   const { user } = useAuth();
   const { data: app, isLoading, isError, error } = useApplication(id);
   const { data: documents = [] } = useDocuments(id);
+  const { data: auditLogs = [] } = useQuery({
+    queryKey: ['audit', id],
+    queryFn: () => auditService.getByApplication(id),
+    enabled: user?.role !== UserRole.APPLICANT,
+  });
 
   if (isLoading) return <LoadingSpinner />;
   if (isError || !app) return <ErrorAlert message={(error as ApiError)?.message || 'Application not found'} />;
@@ -86,6 +93,24 @@ export const ApplicationDetailView = ({ id }: { id: number }) => {
         )}
         <DocumentList documents={documents} applicationId={id} />
       </div>
+
+      {/* Audit Trail (non-applicants only) */}
+      {user?.role !== UserRole.APPLICANT && auditLogs.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <h2 className="font-semibold text-bnr-dark mb-4">Audit Trail</h2>
+          <ul className="space-y-2">
+            {auditLogs.map((log) => (
+              <li key={log.id} className="text-sm flex items-center gap-3 text-bnr-gray">
+                <span className="text-xs text-gray-400 w-36 shrink-0">{formatDate(log.createdAt)}</span>
+                <span className="font-medium bg-gray-100 px-2 py-0.5 rounded text-xs">{log.action}</span>
+                {log.before_state && (
+                  <span className="text-xs">{log.before_state} → {log.after_state}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };

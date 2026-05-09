@@ -22,6 +22,7 @@ export const documentService = {
       { responseType: 'blob' }
     );
     const mimeType = String(headers['content-type'] || 'application/octet-stream');
+    // @ts-ignore - TS complains about Blob constructor but it works fine in browser
     const url = URL.createObjectURL(new Blob([data], { type: mimeType }));
     const a = document.createElement('a');
     a.href = url;

@@ -6,3 +6,4 @@ export * from './components';
 export * from './application';
 export * from './document';
 export * from './state-machine';
+export * from './audit';

@@ -13,7 +13,7 @@ export const ApplicationForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const onSubmit = (values: ApplicationFormValues) => {
     mutation.mutate(values, {
       onSuccess: () => {
-        reset();
+        reset(); // clear form after submit so they can create another one
         onSuccess?.();
       },
     });

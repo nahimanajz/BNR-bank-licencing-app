@@ -4,7 +4,7 @@ import { TransitionHandler, TransitionAction, TransitionMap } from '@/types/stat
 export { TransitionHandler };
 export type { TransitionAction, TransitionMap };
 
-// TODO: sync ROLE_TRANSITIONS with backend StateMachineService if rules change
+// duplicates backend — keep in sync
 const ROLE_TRANSITIONS: Record<string, Partial<Record<ApplicationStatus, ApplicationStatus[]>>> = {
   [UserRole.APPLICANT]: {
     [ApplicationStatus.DRAFT]: [ApplicationStatus.SUBMITTED],

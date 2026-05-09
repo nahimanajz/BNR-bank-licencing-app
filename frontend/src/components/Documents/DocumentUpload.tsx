@@ -35,6 +35,7 @@ export const DocumentUpload = ({ applicationId }: { applicationId: number }) => 
         <p className="text-sm text-green-600">File uploaded successfully.</p>
       )}
       <div className="flex items-center gap-3">
+        {/* TODO: .docx? */}
         <input
           ref={inputRef}
           type="file"

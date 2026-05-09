@@ -1,6 +1,7 @@
 export const formatDate = (iso: string | null | undefined): string => {
   if (!iso) return '—';
   const d = new Date(iso);
+  // new Date('') doesn't throw - it returns Invalid Date, so we check manually
   if (isNaN(d.getTime())) return '—';
   return d.toLocaleDateString('en-US', {
     year: 'numeric',

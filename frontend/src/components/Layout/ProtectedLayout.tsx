@@ -10,6 +10,7 @@ export const ProtectedLayout = ({ children }: { children: React.ReactNode }) => 
   const router = useRouter();
 
   useEffect(() => {
+    // wait for loading to finish before redirecting, otherwise it always redirects on first render
     if (!loading && !user) router.push('/login');
   }, [user, loading, router]);
 

@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { User } from '@/types';
 import { AuthContextValue, AuthResponse } from '@/types/auth';
 
@@ -15,17 +15,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   }, []);
 
-  const login = useCallback((data: AuthResponse) => {
+  const login = (data: AuthResponse) => {
     setUser(data.user);
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));
-  }, []);
+  };
 
-  const logout = useCallback(() => {
+  const logout = () => {
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-  }, []);
+  };
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>

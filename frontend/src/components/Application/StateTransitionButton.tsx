@@ -26,9 +26,8 @@ export const StateTransitionButton = ({ application }: StateTransitionButtonProp
 
   const allNextStates = getNextStates(application.status, user.role);
 
-  // Hard rule: the reviewer of an application cannot be its approver.
-  // If this APPROVER is recorded as the reviewer, remove decide actions from the UI
-  // entirely — don't let them click something the backend will reject.
+  // if the same person reviewed it, they can't approve it too - backend will reject anyway
+  // but we hide the button so the user doesn't get confused by a 403 error
   const isConflictedApprover =
     user.role === UserRole.APPROVER && application.current_reviewer_id === user.id;
 
