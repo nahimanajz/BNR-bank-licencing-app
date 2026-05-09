@@ -5,3 +5,4 @@ export * from './forms';
 export * from './components';
 export * from './application';
 export * from './document';
+export * from './state-machine';
