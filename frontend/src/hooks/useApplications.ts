@@ -1,5 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { applicationService } from '@/services/application.service';
+import {
+  CreateApplicationPayload,
+  TransitionPayload,
+  FeedbackPayload,
+  DecidePayload,
+} from '@/types/application';
 
 export const useApplications = () =>
   useQuery({
@@ -18,7 +24,7 @@ export const useApplication = (id: number) =>
 export const useCreateApplication = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { institution_name: string }) => applicationService.create(payload),
+    mutationFn: (payload: CreateApplicationPayload) => applicationService.create(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });
     },
@@ -28,7 +34,7 @@ export const useCreateApplication = () => {
 export const useTransitionApplication = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, newStatus, version }: { id: number; newStatus: string; version: number }) =>
+    mutationFn: ({ id, newStatus, version }: TransitionPayload) =>
       applicationService.transition(id, newStatus, version),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['application', id] });
@@ -40,15 +46,8 @@ export const useTransitionApplication = () => {
 export const useProvideFeedback = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      feedback,
-      version,
-    }: {
-      id: number;
-      feedback: string;
-      version: number;
-    }) => applicationService.provideFeedback(id, feedback, version),
+    mutationFn: ({ id, feedback, version }: FeedbackPayload) =>
+      applicationService.provideFeedback(id, feedback, version),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['application', id] });
       queryClient.invalidateQueries({ queryKey: ['applications'] });
@@ -59,17 +58,8 @@ export const useProvideFeedback = () => {
 export const useDecideApplication = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      decision,
-      notes,
-      version,
-    }: {
-      id: number;
-      decision: string;
-      notes: string;
-      version: number;
-    }) => applicationService.decide(id, decision, notes, version),
+    mutationFn: ({ id, decision, notes, version }: DecidePayload) =>
+      applicationService.decide(id, decision, notes, version),
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: ['application', id] });
       queryClient.invalidateQueries({ queryKey: ['applications'] });

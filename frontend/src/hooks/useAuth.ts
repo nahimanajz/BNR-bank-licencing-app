@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { AuthContext } from '@/context/AuthContext';
 import { authService } from '@/services/auth.service';
+import { LoginPayload, SignupPayload } from '@/types/auth';
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -15,8 +16,7 @@ export const useLogin = () => {
   const { login } = useAuth();
 
   return useMutation({
-    mutationFn: (credentials: { email: string; password: string }) =>
-      authService.login(credentials),
+    mutationFn: (credentials: LoginPayload) => authService.login(credentials),
     onSuccess: (data) => {
       login(data);
       router.push('/applications');
@@ -29,8 +29,7 @@ export const useSignup = () => {
   const { login } = useAuth();
 
   return useMutation({
-    mutationFn: (payload: { email: string; password: string; role: string; full_name?: string }) =>
-      authService.signup(payload),
+    mutationFn: (payload: SignupPayload) => authService.signup(payload),
     onSuccess: (data) => {
       login(data);
       router.push('/applications');

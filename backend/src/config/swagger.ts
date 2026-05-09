@@ -14,7 +14,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'http://localhost:3000/api',
+        url: 'http://localhost:4000/api',
         description: 'Development server',
       },
     ],
@@ -31,7 +31,7 @@ const options: swaggerJsdoc.Options = {
         // ── Enums ──────────────────────────────────────────────────────────
         UserRole: {
           type: 'string',
-          enum: ['APPLICANT', 'REVIEWER', 'APPROVER', 'ADMIN'],
+          enum: ['APPLICANT', 'REVIEWER', 'APPROVER'],
           example: 'APPLICANT',
         },
         ApplicationStatus: {
@@ -701,8 +701,8 @@ const options: swaggerJsdoc.Options = {
       '/audit/applications/{id}': {
         get: {
           tags: ['Audit'],
-          summary: 'Get audit trail for an application (ADMIN or REVIEWER)',
-          description: 'Returns all state-change events for an application ordered by time descending. ADMIN may also use GET /audit?applicationId= to query by query param.',
+          summary: 'Get audit trail for an application (REVIEWER or APPROVER)',
+          description: 'Returns all state-change events for an application ordered by time ascending. Accessible to REVIEWER and APPROVER roles.',
           security: [{ bearerAuth: [] }],
           parameters: [
             {

@@ -10,14 +10,14 @@ const controller = new AuditController(auditLogRepository);
 
 const router = Router();
 
-// ADMIN: GET /audit?applicationId=123
-router.get('/', authMiddleware, requireRole('ADMIN'), controller.listByApplication);
+// REVIEWER + APPROVER can browse all audit entries (optionally filtered by applicationId)
+router.get('/', authMiddleware, requireRole('REVIEWER', 'APPROVER'), controller.listByApplication);
 
-// ADMIN + REVIEWER: GET /audit/applications/:id
+// REVIEWER + APPROVER can read audit trail for a specific application
 router.get(
   '/applications/:id',
   authMiddleware,
-  requireRole('ADMIN', 'REVIEWER'),
+  requireRole('REVIEWER', 'APPROVER'),
   controller.listByApplication
 );
 

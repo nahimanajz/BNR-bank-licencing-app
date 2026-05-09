@@ -4,20 +4,13 @@ import Link from 'next/link';
 import { useSignup } from '@/hooks/useAuth';
 import { Button } from '@/components/Common/Button';
 import { ErrorAlert } from '@/components/Common/ErrorAlert';
-import { ApiError } from '@/types';
-
-interface FormValues {
-  full_name: string;
-  email: string;
-  password: string;
-  role: string;
-}
-
-const ROLES = ['APPLICANT', 'REVIEWER', 'APPROVER'];
+import { ApiError, UserRole } from '@/types';
+import { SignupFormValues } from '@/types/forms';
+import { ASSIGNABLE_ROLES } from '@/utils/constants';
 
 export const SignupView = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
-    defaultValues: { role: 'APPLICANT' },
+  const { register, handleSubmit, formState: { errors } } = useForm<SignupFormValues>({
+    defaultValues: { role: UserRole.APPLICANT },
   });
   const mutation = useSignup();
 
@@ -33,7 +26,7 @@ export const SignupView = () => {
           <ErrorAlert message={(mutation.error as ApiError)?.message || 'Signup failed'} />
         )}
 
-        <form onSubmit={handleSubmit((v) => mutation.mutate(v))} className="space-y-4">
+        <form onSubmit={handleSubmit((v) => mutation.mutate({ ...v, role: v.role as UserRole }))} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-bnr-gray mb-1">Full Name</label>
             <input
@@ -65,7 +58,7 @@ export const SignupView = () => {
               {...register('role')}
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-bnr-teal"
             >
-              {ROLES.map((r) => (
+              {ASSIGNABLE_ROLES.map((r) => (
                 <option key={r} value={r}>{r}</option>
               ))}
             </select>

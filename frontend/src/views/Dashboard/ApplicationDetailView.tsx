@@ -13,7 +13,7 @@ import { LoadingSpinner } from '@/components/Common/LoadingSpinner';
 import { ErrorAlert } from '@/components/Common/ErrorAlert';
 import { STATUS_LABELS, STATUS_COLORS } from '@/utils/constants';
 import { formatDate } from '@/utils/formatters';
-import { ApiError } from '@/types';
+import { ApiError, UserRole, ApplicationStatus } from '@/types';
 
 export const ApplicationDetailView = ({ id }: { id: number }) => {
   const { user } = useAuth();
@@ -22,14 +22,14 @@ export const ApplicationDetailView = ({ id }: { id: number }) => {
   const { data: auditLogs = [] } = useQuery({
     queryKey: ['audit', id],
     queryFn: () => auditService.getByApplication(id),
-    enabled: user?.role !== 'APPLICANT',
+    enabled: user?.role !== UserRole.APPLICANT,
   });
 
   if (isLoading) return <LoadingSpinner />;
   if (isError || !app) return <ErrorAlert message={(error as ApiError)?.message || 'Application not found'} />;
 
-  const canUpload = user?.role === 'APPLICANT' && app.applicant_id === user.id &&
-    ['DRAFT', 'CLARIFICATION_REQUESTED'].includes(app.status);
+  const canUpload = user?.role === UserRole.APPLICANT && app.applicant_id === user.id &&
+    [ApplicationStatus.DRAFT, ApplicationStatus.CLARIFICATION_REQUESTED].includes(app.status);
 
   return (
     <div className="space-y-6">
@@ -51,8 +51,8 @@ export const ApplicationDetailView = ({ id }: { id: number }) => {
           </span>
         </div>
         <div className="grid grid-cols-2 gap-4 mt-4 text-sm text-bnr-gray">
-          <div><span className="font-medium">Created:</span> {formatDate(app.created_at)}</div>
-          <div><span className="font-medium">Updated:</span> {formatDate(app.updated_at)}</div>
+          <div><span className="font-medium">Created:</span> {formatDate(app.createdAt)}</div>
+          <div><span className="font-medium">Updated:</span> {formatDate(app.updatedAt)}</div>
           <div><span className="font-medium">Version:</span> {app.version}</div>
         </div>
       </div>
@@ -71,7 +71,7 @@ export const ApplicationDetailView = ({ id }: { id: number }) => {
         <FeedbackDisplay
           feedback={app.decision_notes}
           label="Decision Notes"
-          variant={app.status === 'APPROVED' ? 'success' : 'danger'}
+          variant={app.status === ApplicationStatus.APPROVED ? 'success' : 'danger'}
         />
       )}
 
@@ -93,13 +93,13 @@ export const ApplicationDetailView = ({ id }: { id: number }) => {
       </div>
 
       {/* Audit Trail (non-applicants) */}
-      {user?.role !== 'APPLICANT' && auditLogs.length > 0 && (
+      {user?.role !== UserRole.APPLICANT && auditLogs.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-6">
           <h2 className="font-semibold text-bnr-dark mb-4">Audit Trail</h2>
           <ul className="space-y-2">
             {auditLogs.map((log) => (
               <li key={log.id} className="text-sm flex items-center gap-3 text-bnr-gray">
-                <span className="text-xs text-gray-400 w-36 shrink-0">{formatDate(log.created_at)}</span>
+                <span className="text-xs text-gray-400 w-36 shrink-0">{formatDate(log.createdAt)}</span>
                 <span className="font-medium bg-gray-100 px-2 py-0.5 rounded text-xs">{log.action}</span>
                 {log.before_state && (
                   <span className="text-xs">{log.before_state} → {log.after_state}</span>

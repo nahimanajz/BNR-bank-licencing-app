@@ -9,14 +9,16 @@ export class AuditLogRepository extends BaseRepository<AuditLog> {
   async findByApplicationId(applicationId: number): Promise<AuditLog[]> {
     return this.model.findAll({
       where: { application_id: applicationId } as any,
-      order: [['created_at', 'DESC']],
+      order: [['created_at', 'ASC']],
     });
   }
 
-  async findByUserId(userId: number): Promise<AuditLog[]> {
-    return this.model.findAll({
-      where: { user_id: userId } as any,
-      order: [['created_at', 'DESC']],
-    });
+  async findAll(where: object = {}): Promise<AuditLog[]> {
+    return this.model.findAll({ where: where as any, order: [['created_at', 'ASC']] });
+  }
+
+  // Audit records are permanent legal evidence — mutations are not permitted.
+  override async update(): Promise<never> {
+    throw new Error('Audit log records are immutable and cannot be modified');
   }
 }

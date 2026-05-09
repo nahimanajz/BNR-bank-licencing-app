@@ -1,5 +1,6 @@
 import apiClient from '../config/api.client';
-import { Application } from '@/types';
+import { Application, ApplicationStatus } from '@/types';
+import { CreateApplicationPayload } from '@/types/application';
 
 export const applicationService = {
   getApplications: async (): Promise<Application[]> => {
@@ -12,12 +13,12 @@ export const applicationService = {
     return data.data;
   },
 
-  create: async (payload: { institution_name: string }): Promise<Application> => {
+  create: async (payload: CreateApplicationPayload): Promise<Application> => {
     const { data } = await apiClient.post('/applications', payload);
     return data.data;
   },
 
-  transition: async (id: number, newStatus: string, version: number): Promise<Application> => {
+  transition: async (id: number, newStatus: ApplicationStatus, version: number): Promise<Application> => {
     const { data } = await apiClient.patch(`/applications/${id}/transition`, { newStatus, version });
     return data.data;
   },

@@ -3,16 +3,15 @@
 const bcrypt = require('bcryptjs');
 
 const SEED_USERS = [
-  { email: 'applicant@example.com', role: 'APPLICANT', full_name: 'Alice Applicant' },
-  { email: 'reviewer@example.com', role: 'REVIEWER', full_name: 'Robert Reviewer' },
-  { email: 'approver@example.com', role: 'APPROVER', full_name: 'Anne Approver' },
-  { email: 'admin@example.com', role: 'ADMIN', full_name: 'Adam Admin' },
+  { email: 'applicant@bnr.rw', role: 'APPLICANT', full_name: 'Alice Applicant' },
+  { email: 'reviewer@bnr.rw', role: 'REVIEWER', full_name: 'Robert Reviewer' },
+  { email: 'approver@bnr.rw', role: 'APPROVER', full_name: 'Anne Approver' },
 ];
 
 module.exports = {
   async up(queryInterface) {
     const now = new Date();
-    const password_hash = await bcrypt.hash('password', 10);
+    const password_hash = await bcrypt.hash('password123', 10);
 
     const existingRows = await queryInterface.sequelize.query(
       `SELECT email FROM users WHERE email IN (${SEED_USERS.map((u) => `'${u.email}'`).join(',')})`,

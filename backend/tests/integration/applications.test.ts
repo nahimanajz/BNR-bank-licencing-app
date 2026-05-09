@@ -105,9 +105,7 @@ describe('State transitions', () => {
     applicationVersion = res.body.data.version;
   });
 
-  test('APPROVER cannot approve own review (reviewer ≠ approver enforced)', async () => {
-    // approver tries to approve but is same user who reviewed — not applicable here
-    // so this test validates the happy path: APPROVER approves
+  test('APPROVER can approve an application they did not review', async () => {
     const res = await request(app)
       .patch(`/api/applications/${applicationId}/decide`)
       .set('Authorization', `Bearer ${approverToken}`)
@@ -169,5 +167,83 @@ describe('Authorization violations', () => {
       .send({ newStatus: 'APPROVED', version: newAppVersion });
 
     expect(res.status).toBe(400);
+  });
+});
+
+describe('Reviewer ≠ approver — the hard rule', () => {
+  let conflictAppId: number;
+  let conflictAppVersion: number;
+  let approverId: number;
+
+  beforeAll(async () => {
+    // Retrieve the approver's user ID from the login response.
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'approver@test.com', password: 'password' });
+    approverId = loginRes.body.data.id;
+
+    // Create and advance a fresh application to DECISION_PENDING.
+    const created = await request(app)
+      .post('/api/applications')
+      .set('Authorization', `Bearer ${applicantToken}`)
+      .send({ institution_name: 'Conflict Rule Bank' });
+    conflictAppId = created.body.data.id;
+    conflictAppVersion = created.body.data.version;
+
+    const submitted = await request(app)
+      .patch(`/api/applications/${conflictAppId}/transition`)
+      .set('Authorization', `Bearer ${applicantToken}`)
+      .send({ newStatus: 'SUBMITTED', version: conflictAppVersion });
+    conflictAppVersion = submitted.body.data.version;
+
+    const underReview = await request(app)
+      .patch(`/api/applications/${conflictAppId}/transition`)
+      .set('Authorization', `Bearer ${reviewerToken}`)
+      .send({ newStatus: 'UNDER_REVIEW', version: conflictAppVersion });
+    conflictAppVersion = underReview.body.data.version;
+
+    const decisionPending = await request(app)
+      .patch(`/api/applications/${conflictAppId}/transition`)
+      .set('Authorization', `Bearer ${reviewerToken}`)
+      .send({ newStatus: 'DECISION_PENDING', version: conflictAppVersion });
+    conflictAppVersion = decisionPending.body.data.version;
+
+    // Inject the conflict: overwrite current_reviewer_id with the approver's own ID.
+    // This simulates the scenario where the same person reviewed and is now
+    // attempting the final approval — exactly what the challenge forbids.
+    const { Application } = await import('../../src/models/index');
+    await Application.update(
+      { current_reviewer_id: approverId },
+      { where: { id: conflictAppId } as any }
+    );
+  });
+
+  test('APPROVER cannot approve an application they reviewed — returns 403', async () => {
+    const res = await request(app)
+      .patch(`/api/applications/${conflictAppId}/decide`)
+      .set('Authorization', `Bearer ${approverToken}`)
+      .send({ decision: 'APPROVE', notes: 'Self-approval attempt', version: conflictAppVersion });
+
+    expect(res.status).toBe(403);
+    expect(res.body.success).toBe(false);
+  });
+
+  test('A different APPROVER can approve the same application', async () => {
+    // Create a second approver to confirm the rule targets identity, not the role.
+    await request(app)
+      .post('/api/auth/signup')
+      .send({ email: 'approver2@test.com', password: 'password', role: 'APPROVER' });
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: 'approver2@test.com', password: 'password' });
+    const approver2Token = loginRes.body.data.token;
+
+    const res = await request(app)
+      .patch(`/api/applications/${conflictAppId}/decide`)
+      .set('Authorization', `Bearer ${approver2Token}`)
+      .send({ decision: 'APPROVE', notes: 'Approved by a different approver', version: conflictAppVersion });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.status).toBe('APPROVED');
   });
 });

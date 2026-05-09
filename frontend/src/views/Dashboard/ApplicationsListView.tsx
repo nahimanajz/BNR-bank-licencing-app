@@ -8,7 +8,7 @@ import { LoadingSpinner } from '@/components/Common/LoadingSpinner';
 import { ErrorAlert } from '@/components/Common/ErrorAlert';
 import { EmptyState } from '@/components/Common/EmptyState';
 import { Button } from '@/components/Common/Button';
-import { ApiError } from '@/types';
+import { ApiError, UserRole } from '@/types';
 
 export const ApplicationsListView = () => {
   const { user } = useAuth();
@@ -22,7 +22,7 @@ export const ApplicationsListView = () => {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-bnr-dark">Applications</h1>
-        {user?.role === 'APPLICANT' && (
+        {user?.role === UserRole.APPLICANT && (
           <Button onClick={() => setShowForm(!showForm)}>
             {showForm ? 'Cancel' : '+ New Application'}
           </Button>
@@ -39,7 +39,7 @@ export const ApplicationsListView = () => {
       {!applications || applications.length === 0 ? (
         <EmptyState
           title="No applications yet"
-          description={user?.role === 'APPLICANT' ? 'Create your first application to get started.' : 'No applications found.'}
+          description={user?.role === UserRole.APPLICANT ? 'Create your first application to get started.' : 'No applications found.'}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

@@ -4,7 +4,7 @@ export const signupSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(8).required(),
   full_name: Joi.string().max(255).optional(),
-  role: Joi.string().valid('APPLICANT', 'REVIEWER', 'APPROVER', 'ADMIN').optional(),
+  role: Joi.string().valid('APPLICANT', 'REVIEWER', 'APPROVER').optional(),
 });
 
 export const loginSchema = Joi.object({

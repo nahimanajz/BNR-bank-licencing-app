@@ -1,13 +1,7 @@
 'use client';
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { User } from '@/types';
-
-interface AuthContextValue {
-  user: User | null;
-  loading: boolean;
-  login: (data: { user: User; token: string }) => void;
-  logout: () => void;
-}
+import { AuthContextValue, AuthResponse } from '@/types/auth';
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
@@ -21,7 +15,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setLoading(false);
   }, []);
 
-  const login = useCallback((data: { user: User; token: string }) => {
+  const login = useCallback((data: AuthResponse) => {
     setUser(data.user);
     localStorage.setItem('token', data.token);
     localStorage.setItem('user', JSON.stringify(data.user));

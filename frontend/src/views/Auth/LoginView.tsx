@@ -5,14 +5,10 @@ import { useLogin } from '@/hooks/useAuth';
 import { Button } from '@/components/Common/Button';
 import { ErrorAlert } from '@/components/Common/ErrorAlert';
 import { ApiError } from '@/types';
-
-interface FormValues {
-  email: string;
-  password: string;
-}
+import { LoginFormValues } from '@/types/forms';
 
 export const LoginView = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>();
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormValues>();
   const mutation = useLogin();
 
   return (

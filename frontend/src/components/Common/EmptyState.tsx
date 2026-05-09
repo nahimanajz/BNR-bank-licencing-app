@@ -1,8 +1,4 @@
-interface EmptyStateProps {
-  title: string;
-  description?: string;
-  action?: React.ReactNode;
-}
+import { EmptyStateProps } from '@/types/components';
 
 export const EmptyState = ({ title, description, action }: EmptyStateProps) => (
   <div className="flex flex-col items-center justify-center py-16 text-center">
