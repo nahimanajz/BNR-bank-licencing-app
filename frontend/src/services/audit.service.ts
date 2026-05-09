@@ -3,13 +3,13 @@ import { AuditLog } from '@/types';
 
 export const auditService = {
   getByApplication: async (applicationId: number): Promise<AuditLog[]> => {
-    const { data } = await apiClient.get(`/audit/applications/${applicationId}`);
-    return data.data;
+    const {data: response} = await apiClient.get(`/audit/applications/${applicationId}`);
+    return response.data;
   },
 
   getAll: async (applicationId?: number): Promise<AuditLog[]> => {
     const params = applicationId ? `?applicationId=${applicationId}` : '';
-    const { data } = await apiClient.get(`/audit${params}`);
-    return data.data;
+    const { data:response } = await apiClient.get(`/audit${params}`);
+    return response.data;
   },
 };

@@ -23,7 +23,7 @@ export const DocumentList = ({ documents, applicationId }: DocumentListProps) =>
           </div>
           <button
             onClick={() => documentService.download(applicationId, doc.id, doc.original_name)}
-            className="text-bnr-teal hover:underline text-xs font-medium"
+            className="text-bnr-teal hover:text-bnr-cyan hover:underline text-xs font-medium"
           >
             Download
           </button>

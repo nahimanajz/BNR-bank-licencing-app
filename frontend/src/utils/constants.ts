@@ -1,4 +1,5 @@
-import { ApplicationStatus, UserRole } from '@/types';
+import { ApplicationStatus, FeedbackVariant, UserRole } from '@/types';
+
 
 export const STATUS_LABELS: Record<ApplicationStatus, string> = {
   [ApplicationStatus.DRAFT]: 'Draft',
@@ -32,3 +33,22 @@ export const ASSIGNABLE_ROLES: UserRole[] = [
   UserRole.REVIEWER,
   UserRole.APPROVER,
 ];
+
+///Below there are list of re-usable feedback colors
+export const VARIANT_STYLES: Record<FeedbackVariant, string> = {
+  warning: 'bg-amber-50 border-amber-200',
+  success: 'bg-green-50 border-green-200',
+  danger: 'bg-red-50 border-red-200',
+};
+
+export const LABEL_STYLES: Record<FeedbackVariant, string> = {
+  warning: 'text-amber-700',
+  success: 'text-green-700',
+  danger: 'text-red-700',
+};
+
+export const BODY_STYLES: Record<FeedbackVariant, string> = {
+  warning: 'text-amber-800',
+  success: 'text-green-800',
+  danger: 'text-red-800',
+};

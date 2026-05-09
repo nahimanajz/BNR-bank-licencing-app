@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import multer from 'multer';
 import { DocumentController } from '../controllers/DocumentController';
 import { DocumentService } from '../services/DocumentService';
 import { DocumentRepository } from '../repositories/DocumentRepository';
@@ -9,11 +8,8 @@ import { AuditService } from '../services/AuditService';
 import { Document, Application, AuditLog } from '../models/index';
 import { authMiddleware } from '../middlewares/authMiddleware';
 import { requireRole } from '../middlewares/roleMiddleware';
+import { upload } from '../utils/upload';
 
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
-});
 
 const documentRepository = new DocumentRepository(Document);
 const applicationRepository = new ApplicationRepository(Application);

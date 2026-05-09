@@ -10,7 +10,6 @@ import { EmptyState } from '@/components/Common/EmptyState';
 import { Button } from '@/components/Common/Button';
 import { ApiError, UserRole } from '@/types';
 
-// TODO: add pagination - if there are many applications this page will be slow to load
 
 export const ApplicationsListView = () => {
   const { user } = useAuth();

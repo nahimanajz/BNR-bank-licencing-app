@@ -6,12 +6,13 @@ import {
   FeedbackPayload,
   DecidePayload,
 } from '@/types/application';
+import { reloadApplication } from '@/utils/reloadApplication';
 
 export const useApplications = () =>
   useQuery({
     queryKey: ['applications'],
     queryFn: () => applicationService.getApplications(),
-    staleTime: 30 * 1000,
+    staleTime: 70 * 1000, // reload happens after minutes 
   });
 
 export const useApplication = (id: number) =>
@@ -19,6 +20,7 @@ export const useApplication = (id: number) =>
     queryKey: ['application', id],
     queryFn: () => applicationService.getById(id),
     enabled: !!id,
+    staleTime: 0,
   });
 
 export const useCreateApplication = () => {
@@ -36,10 +38,8 @@ export const useTransitionApplication = () => {
   return useMutation({
     mutationFn: ({ id, newStatus, version }: TransitionPayload) =>
       applicationService.transition(id, newStatus, version),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['application', id] });
-      queryClient.invalidateQueries({ queryKey: ['applications'] });
-    },
+    onSuccess: reloadApplication(queryClient),
+    retry: false,
   });
 };
 
@@ -48,10 +48,7 @@ export const useProvideFeedback = () => {
   return useMutation({
     mutationFn: ({ id, feedback, version }: FeedbackPayload) =>
       applicationService.provideFeedback(id, feedback, version),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['application', id] });
-      queryClient.invalidateQueries({ queryKey: ['applications'] });
-    },
+    onSuccess: reloadApplication(queryClient),
   });
 };
 
@@ -60,9 +57,6 @@ export const useDecideApplication = () => {
   return useMutation({
     mutationFn: ({ id, decision, notes, version }: DecidePayload) =>
       applicationService.decide(id, decision, notes, version),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['application', id] });
-      queryClient.invalidateQueries({ queryKey: ['applications'] });
-    },
+    onSuccess: reloadApplication(queryClient),
   });
 };

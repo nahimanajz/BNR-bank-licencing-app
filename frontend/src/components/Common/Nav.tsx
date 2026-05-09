@@ -25,7 +25,7 @@ export const Nav = () => {
   return (
     <nav className="bg-bnr-dark text-white px-6 py-3 flex items-center justify-between shadow-md">
       <div className="flex items-center gap-8">
-        <span className="font-bold text-lg tracking-wide text-bnr-teal">BNR Licensing</span>
+        <span className="font-bold text-lg tracking-wide text-teal-400">BNR Licensing</span>
         <div className="flex gap-4">
           {links.map(({ href, label }) => (
             <Link
@@ -33,7 +33,7 @@ export const Nav = () => {
               href={href}
               className={`text-sm transition-colors ${
                 pathname.startsWith(href)
-                  ? 'text-bnr-teal font-semibold'
+                  ? 'text-teal-400 font-semibold'
                   : 'text-gray-300 hover:text-bnr-teal'
               }`}
             >

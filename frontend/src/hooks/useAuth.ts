@@ -21,7 +21,6 @@ export const useLogin = () => {
       login(data);
       router.push('/applications');
     },
-    // TODO: should we redirect to /login on 401? the interceptor might already do this
   });
 };
 

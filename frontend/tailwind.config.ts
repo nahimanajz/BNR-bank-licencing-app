@@ -6,14 +6,14 @@ const config: Config = {
     extend: {
       colors: {
         bnr: {
-          teal: '#08beab',
-          cyan: '#0baccc',
+          teal: '#6c321B',
+          cyan: '#B5651D',
           blue: '#0d6efd',
           'blue-dark': '#084298',
           gold: '#ffc107',
           dark: '#1c1c27',
           gray: '#212529',
-          light: '#f8f9fa',
+          light: '#fcf6e8',
         },
       },
     },

@@ -3,10 +3,10 @@ import React from 'react';
 import { ButtonProps, ButtonVariant } from '@/types/components';
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-bnr-teal hover:bg-teal-600 text-white',
-  secondary: 'bg-bnr-blue hover:bg-blue-700 text-white',
-  danger: 'bg-red-600 hover:bg-red-700 text-white',
-  ghost: 'bg-transparent border border-bnr-teal text-bnr-teal hover:bg-teal-50',
+  primary: 'bg-bnr-teal hover:bg-bnr-cyan text-white',
+  secondary: 'bg-bnr-blue hover:bg-bnr-cyan text-white',
+  danger: 'bg-red-600 hover:bg-bnr-cyan text-white',
+  ghost: 'bg-transparent border border-bnr-teal text-bnr-teal hover:bg-bnr-cyan hover:text-white',
 };
 
 export const Button = ({

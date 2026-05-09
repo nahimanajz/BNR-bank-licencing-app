@@ -1,22 +1,5 @@
-import { FeedbackDisplayProps, FeedbackVariant } from '@/types/components';
-
-const VARIANT_STYLES: Record<FeedbackVariant, string> = {
-  warning: 'bg-amber-50 border-amber-200',
-  success: 'bg-green-50 border-green-200',
-  danger: 'bg-red-50 border-red-200',
-};
-
-const LABEL_STYLES: Record<FeedbackVariant, string> = {
-  warning: 'text-amber-700',
-  success: 'text-green-700',
-  danger: 'text-red-700',
-};
-
-const BODY_STYLES: Record<FeedbackVariant, string> = {
-  warning: 'text-amber-800',
-  success: 'text-green-800',
-  danger: 'text-red-800',
-};
+import { FeedbackDisplayProps } from '@/types/components';
+import { BODY_STYLES, LABEL_STYLES, VARIANT_STYLES } from '@/utils/constants';
 
 export const FeedbackDisplay = ({
   feedback,

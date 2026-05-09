@@ -26,7 +26,7 @@ export const StateTransitionButton = ({ application }: StateTransitionButtonProp
 
   const allNextStates = getNextStates(application.status, user.role);
 
-  // if the same person reviewed it, they can't approve it too - backend will reject anyway
+  // check if one same person reviewed it, they can't approve it too - backend will reject anyway
   // but we hide the button so the user doesn't get confused by a 403 error
   const isConflictedApprover =
     user.role === UserRole.APPROVER && application.current_reviewer_id === user.id;
@@ -76,13 +76,13 @@ export const StateTransitionButton = ({ application }: StateTransitionButtonProp
         { onError: (err) => setError((err as ApiError).message || 'Action failed') }
       );
     } else if (action.handler === TransitionHandler.DECIDE) {
-      decideMutation.mutate(
-        {
+      const notedApplication = {
           id: application.id,
           decision: action.decideValue!,
           notes: text,
           version: application.version,
-        },
+        }
+      decideMutation.mutate(notedApplication,
         { onError: (err) => setError((err as ApiError).message || 'Decision failed') }
       );
     } else {

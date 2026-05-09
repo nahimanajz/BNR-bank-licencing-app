@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// TODO: restrict CORS before we go live - right now any origin can call this
 const apiClient = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api',
   timeout: 10000,
@@ -10,7 +9,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
   if (token) config.headers.Authorization = `Bearer ${token}`;
-  // console.log('[api] token attached:', !!token, config.url)
+  console.log("current token", token) // TODO: remove this console before submitting for security reason
   return config;
 });
 

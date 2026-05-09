@@ -8,7 +8,7 @@ import { EmptyState } from '@/components/Common/EmptyState';
 import { formatDate } from '@/utils/formatters';
 import { ApiError } from '@/types';
 
-// TODO: debounce
+// TODO: investigate if debouncing can be ideal
 
 export const AuditLogView = () => {
   const [appIdFilter, setAppIdFilter] = useState('');

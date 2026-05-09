@@ -4,39 +4,61 @@
 
 ## Architecture
 
-The backend is a layered Express API sitting in front of a PostgreSQL database. The frontend is a Next.js app that talks to it over HTTP. They share nothing except the API contract.
+Backend is an Express API connected to PostgreSQL. Frontend is Next.js. They only share the REST API endpoints.
 
 ```
 Browser (Next.js)  ──HTTP/JSON──►  Express API  ──►  PostgreSQL
 ```
 
-**Backend** — requests pass through middleware (auth, role enforcement, validation), hit a controller that does nothing but parse and delegate, then reach a service where all business logic lives, and finally a repository that owns every database call. Controllers never touch the database; services never read HTTP headers. The layering keeps tests small and makes it obvious where a bug belongs.
+**Backend** 
+- On this architecture I used repository design pattern [documentation](https://medium.com/@pererikbergman/repository-design-pattern-e28c0f3e4a30)
+— A request arrives in middleware for checks, if passed it goes to controller to handle HTTP requests then call service which deals with business logic thereby a repository is called to handle read/write operation to actual database and on this project I used POSTGRES.
 
-One deliberate structural choice: the Express application is created in `app.ts` and exported without starting a server. The actual `listen()` call and database connection live in `server.ts`, which is the production entry point only. This matters because the integration tests import `app` directly and hand it to `supertest` — if `listen()` lived inside `app.ts`, every test run would bind a real TCP port. Keeping them separate means tests spin up in milliseconds with no port conflicts.
+- There two entry point in this app `server.ts` which deals with `app.listen()` to bootstrap actual application.
+- The second one is `app.ts` which is there for enabling tests of this backend app.
 
-On the authentication side, every protected request goes through the same path: the `authMiddleware` extracts the JWT from the `Authorization` header, verifies it against `JWT_SECRET`, and attaches the decoded payload (`id`, `email`, `role`) to `req.user`. After that, `requireRole()` checks the role before the controller ever runs. A missing token returns 401. A valid token with the wrong role returns 403. Neither case leaks a 404 or a 500.
+Auth is simple: `authMiddleware` pulls the JWT from the `Authorization` header, verifies it, and puts `{ id, email, role }` on `req.user`. Then `requireRole()` checks the role before the controller runs. 
 
-**Frontend** — built on Next.js App Router with React Query handling all server state. Every API call goes through a typed service module; components never call `fetch` directly. The auth token lives in `localStorage` and is attached by an Axios interceptor on every request. The `AuthContext` holds the current user and gates protected routes — if there's no user, the layout redirects to `/login` before rendering anything. Role-based visibility (which buttons show, which nav links appear) is derived from `user.role` at the component level, but the backend enforces the same rules independently.
+### Tools
+- Postgress and Sequelize
+- Express
+- Supertest
+- Jest
+- Typescript
+- ES6
+**Frontend** 
+On this frontend architecture I used service oriented architecture, where a request initiates from `view/page` page which is set of called `components/` passes/retrieve data from/to  reusable `hook/`  method which uses `tanstack query` that calls `services/` that does api query in, doing so, services use axios interceptor, there are addional files in utils that handles task like formatting dates and perform other side effects, all of these are done in other to emphasis single responsibility for every code written in this frontend project.
+
+A user (Applicant, Reviewer or Approver) signup/login the lands to dash board, to see list of applications then perform apply, review, or approve depends on who. all or these data are cached using react query.
+Additionally, signed user are saved in browser `localstorage` and it gets cleared as user presses logout buttons.
+
+
+### Tools
+- Typescript
+- Tanstack react query
+- NextJS
+- 
+
 
 ```
 Page (Next.js route)
     │
     ▼
-View component  — layout and composition only
+View component  — layout only
     │
     ▼
-React Query hook  — owns loading/error/data states
+React Query hook  — loading/error/data
     │
     ▼
-Service module  — typed axios calls
+Service module  — axios calls
     │
     ▼
 Express API
 ```
 
-I chose REST over GraphQL because the resource model here is simple and stable. Licensing applications, documents, audit entries — these map cleanly to GET/POST/PATCH on named URLs. GraphQL's flexibility would be overhead without any payoff.
+REST over GraphQL — the resource model is simple. Applications, documents, audit entries map cleanly to GET/POST/PATCH. GraphQL would've been extra complexity for no real benefit here.
 
-PostgreSQL was the only real choice. The audit trail needs durable, queryable writes — ACID guarantees that a committed insert stays committed. The optimistic locking mechanism depends on an atomic `UPDATE WHERE version = ?`, which a relational database gives you for free. A document store would require rebuilding those guarantees from scratch.
+PostgreSQL — the audit trail needs reliable writes. ACID guarantees matter. Optimistic locking with `UPDATE WHERE version = ?` works out of the box. A document store would mean rebuilding all of that myself.
 
 ---
 
@@ -70,7 +92,7 @@ PostgreSQL was the only real choice. The audit trail needs durable, queryable wr
 | created_at          | TIMESTAMP    |                                          |
 | updated_at          | TIMESTAMP    |                                          |
 
-`current_reviewer_id` is the field that enforces the reviewer ≠ approver rule. When a reviewer claims an application, their ID is written there. Before any approval, `AuthorizationService.canApprove()` checks that the caller's ID is not that value.
+`current_reviewer_id` is how the reviewer ≠ approver rule works. When a reviewer claims an application, their ID is stored here. Before any approval, the service checks that the caller's ID doesn't match.
 
 ### documents
 
@@ -79,15 +101,15 @@ PostgreSQL was the only real choice. The audit trail needs durable, queryable wr
 | id             | INTEGER PK   |                                             |
 | application_id | INTEGER FK   | → applications.id                           |
 | filename       | VARCHAR(255) | uuid-prefixed name on disk                  |
-| original_name  | VARCHAR(255) | what the user actually uploaded             |
-| file_size      | INTEGER      | bytes — enforced ≤ 5 MB server-side         |
+| original_name  | VARCHAR(255) | what the user uploaded                      |
+| file_size      | INTEGER      | bytes — max 5 MB enforced server-side       |
 | mime_type      | VARCHAR(100) |                                             |
 | uploader_id    | INTEGER FK   | → users.id                                  |
 | version        | INTEGER      | increments per resubmission cycle           |
 | created_at     | TIMESTAMP    |                                             |
 | updated_at     | TIMESTAMP    |                                             |
 
-Documents are never deleted. On resubmission, new documents get version N+1; the originals stay at N. That way a reviewer can always see what was submitted before any clarification cycle.
+Documents are never deleted. On resubmission, new files get version N+1 and the old ones stay. Reviewers can always see what was submitted before.
 
 ### audit_log
 
@@ -102,7 +124,7 @@ Documents are never deleted. On resubmission, new documents get version N+1; the
 | details        | JSONB        | feedback text, decision notes, etc.  |
 | created_at     | TIMESTAMP    |                                      |
 
-No `updated_at` on audit_log. Records are created once and never touched again.
+No `updated_at` — audit records are written once and never changed.
 
 ---
 
@@ -138,11 +160,11 @@ Each transition is role-gated:
 | DECISION_PENDING        | APPROVED                | APPROVER  | `decision_notes`, `current_approver_id` set |
 | DECISION_PENDING        | REJECTED                | APPROVER  | `decision_notes`, `current_approver_id` set |
 
-APPROVED and REJECTED are terminal. `StateMachineService.validateTransition()` holds both the graph check and the role check in one place. Any illegal call — wrong state, wrong role, trying to exit a terminal — throws before anything touches the database. There is no special handling for terminal states; they simply have no outgoing edges in the map.
+APPROVED and REJECTED are terminal — no outgoing transitions. `StateMachineService.validateTransition()` checks both the graph and the role in one place. Anything illegal throws before the database is touched.
 
-**Why `CLARIFICATION_REQUESTED` is a distinct state rather than just sending a message:** keeping it as an explicit state means the application is formally paused — no reviewer can accidentally move it to `DECISION_PENDING` while the applicant is preparing their response. It also means the audit log records a clean before/after state for the pause, which matters for a regulatory trail. The alternative (staying in `UNDER_REVIEW` and just flagging it) would blur the audit record and create ambiguity about whether the reviewer finished their work.
+`CLARIFICATION_REQUESTED` is a real state, not just a flag. It formally pauses the application — no reviewer can push it to `DECISION_PENDING` while the applicant is still preparing their response. It also keeps the audit trail clean.
 
-**Enforcement order matters:** the state machine validates the transition before the version check runs. An illegal transition returns 400 immediately; the 409 conflict response only surfaces when the transition itself is valid but the row has already moved on. This ordering prevents misleading error messages.
+Validation order: state machine check runs first, version check second. A bad transition returns 400 right away. A 409 only shows up when the transition is valid but the row already moved.
 
 ---
 
@@ -150,27 +172,17 @@ APPROVED and REJECTED are terminal. `StateMachineService.validateTransition()` h
 
 **APPLICANT**
 
-Can: create applications, submit them (DRAFT → SUBMITTED), upload documents, respond to clarification requests (CLARIFICATION_REQUESTED → RESUBMITTED), view their own applications and documents.
-
-Cannot: read any other applicant's application, access the audit log, perform any reviewer or approver transitions, view the internal review state.
-
-They see only their own data by design. The regulator's internal workflow — who reviewed it, what notes were written — is none of the applicant's business, which mirrors how a real licensing portal works.
+Can: create applications, submit them, upload documents, and view their own applications only that
 
 **REVIEWER**
 
-Can: view all applications regardless of applicant, claim submitted applications (SUBMITTED → UNDER_REVIEW), request clarification from the applicant, forward to decision (UNDER_REVIEW → DECISION_PENDING), read the full audit trail.
-
-Cannot: create applications, make final approval or rejection decisions, approve an application on which they are the recorded reviewer.
-
-The reason to separate review from approval is a four-eyes principle: the person who does the technical due diligence should not be the same person who signs off. Mixing the two in one role removes the accountability structure the challenge requires.
+Can: view all applications, claim submitted ones, request clarification, forward to decision, read the audit trail.
 
 **APPROVER**
 
-Can: make the final APPROVED or REJECTED call on applications in DECISION_PENDING, read the full audit trail.
+Can: make the final APPROVED or REJECTED call on applications in DECISION_PENDING, read the audit trail.
 
-Cannot: create applications, perform any review-stage transitions (SUBMITTED → UNDER_REVIEW, UNDER_REVIEW → DECISION_PENDING), approve an application they personally reviewed — that check runs in the service layer against the database, not just the UI.
-
-Both REVIEWER and APPROVER can read the audit log because both roles are internal to the regulator and need the full history to do their job. APPLICANTs cannot — they see only what concerns them.
+Both REVIEWER and APPROVER can read the audit logs because they are interact with application with admistrative privelidges that Applicant doesn't have.
 
 ---
 
@@ -178,54 +190,55 @@ Both REVIEWER and APPROVER can read the audit log because both roles are interna
 
 ### Role Enforcement
 
-Every protected endpoint runs `requireRole()` middleware before the controller executes. The middleware reads the role from the JWT payload (which was written at login and cannot be altered without invalidating the signature). An unauthenticated request gets 401. A valid token with the wrong role gets 403. Neither case returns 404 or 500, which would leak information about whether the resource exists.
+Every protected endpoint runs `requireRole()` before the controller. The role comes from the JWT payload — it was set at login or signup and can't be changed without breaking the signature. No token → 401. Wrong role → 403. Neither leaks a 404 or 500.
 
-Role checks in the UI mirror the backend rules, but the backend enforces them regardless. A REVIEWER who removes the frontend entirely and hits `PATCH /applications/:id/decide` directly still gets a 403 from `requireRole('APPROVER')`. Given more time I'd add rate limiting on these endpoints so a bad actor probing for role mismatches can't do it indefinitely.
+The UI mirrors the backend rules, but the backend doesn't trust the UI. A REVIEWER hitting `PATCH /applications/:id/decide` directly still gets a 403.
+
 
 ### State Machine Enforcement
 
-Every state transition goes through `StateMachineService.validateTransition(currentState, nextState, role)` before any database write. The service holds two maps: one for valid graph edges (which state can follow which), and one for which roles can trigger each edge. If either check fails, it throws before the repository is called — the database never sees an illegal transition.
+All transitions go through `StateMachineService.validateTransition()` before any write. The service has two maps — valid graph edges, and which roles can use each edge. If either check fails, it throws before the repository is called.
 
-The `PATCH /applications/:id/transition` endpoint is the only way to move an application through the workflow. There is no backdoor: no field on the create endpoint sets a non-DRAFT status, no admin override skips the check. Given more time I'd add a database-level constraint (a CHECK or trigger) as a second layer, so even direct SQL access can't produce an illegal state combination.
+`PATCH /applications/:id/transition` is the only way to move an application. There's no backdoor — no field on create sets a non-DRAFT status, no override skips the check.
 
 ### Authentication
 
-I used JWTs rather than sessions. The main reason is that sessions require a shared store (Redis or a database table) the moment you run more than one server process. JWTs are verified locally against the secret, so the backend stays stateless. The real cost is revocation: a valid token stays valid until it expires. In production I'd shorten the TTL to 15 minutes and add a refresh-token flow with a blocklist on logout. For a regulatory internal tool, that trade-off is acceptable for a 48-hour build, but not for production.
+I chose to use JWT over session-based because sessions need a store like database table or redis unlike Json web token which keeps token with signature and expires based on time set,ex:`1h` for one hour, `1d` for one day etc.
+Even though JWT cannot be revoked unless time expires, it is verified on backend local and the backend.
 
 ### Reviewer ≠ Approver
 
-This rule has two layers. The frontend shows an explicit conflict-of-interest notice when a reviewer visits an application they reviewed in an approver session — buttons don't just disappear silently. The backend enforces it in `AuthorizationService.canApprove()`, which reads `current_reviewer_id` from the database and throws a 403 if it matches the caller. A reviewer who circumvents the frontend entirely and hits the API directly is still blocked.
+Two layers. The frontend shows a conflict-of-interest notice — buttons don't just silently disappear. The backend checks `current_reviewer_id` in `AuthorizationService.canApprove()` and throws 403 if it matches the caller. Bypassing the frontend doesn't help.
 
 ### Concurrent Access
 
-Every application row carries a `version` integer. Every write goes through:
+Every application row has a `version` integer. Every write does:
 
 ```sql
 UPDATE applications SET ..., version = version + 1
 WHERE id = ? AND version = ?
 ```
 
-If nothing was updated (`rowsUpdated === 0`), someone else got there first and the version has already moved. We return 409 with a clear message. The client reloads and retries with the new version. No row locking, no deadlock risk, no overhead on uncontested writes. The `concurrent.test.ts` integration test fires two simultaneous requests at the same version and asserts exactly one 200 and one 409.
+If `rowsUpdated === 0`, someone else already changed it. We return 409 and the client reloads. No row locking, no deadlocks. The `concurrent.test.ts` test fires two requests at the same version and checks for exactly one 200 and one 409.
 
 ### Audit Trail
 
-Every state-changing method in `ApplicationService` calls `AuditService.log()` before returning. The log captures who acted, what they did, the before and after states, and any relevant details (feedback text, decision notes) in a JSONB column.
+Every state-changing method in `ApplicationService` calls `AuditService.log()` before returning. It records who acted, what they did, before/after states, and extra details in a JSONB column.
 
-The append-only guarantee is enforced at the code level: `AuditLogRepository` overrides the `update()` method it inherits from `BaseRepository` to throw unconditionally. No API endpoint exposes a delete or update on audit records. The honest limitation here is that a developer with direct database access can still run `DELETE` in psql. The production fix would be a PostgreSQL row-security policy that revokes `UPDATE` and `DELETE` on `audit_log` for the application's database role — making mutation structurally impossible, not just conventionally avoided. I'd do that before treating this log as legal evidence.
+`AuditLogRepository` In order the inherited `update()` to throw unconditionally — nothing in the API can edit an audit record. The limitation is that someone with direct database access can still run `DELETE` in psql. The proper fix is a PostgreSQL row-security policy that removes `UPDATE` and `DELETE` for the app's database role. I'd add that before using this log as legal evidence.
 
 ### Documents
 
-File size is checked in `DocumentService.upload()` before any database write — if the file exceeds 5 MB it gets a 400 immediately. Files land in a local `uploads/` directory for this implementation. In production you'd swap that for S3 and store the object key in the `filename` column; the service interface wouldn't change.
+Size of File  is checked in `DocumentService.upload()` before any database write — over 5 MB gets a 400 immediately. Files go to a local `data/files/` directory for now. In production, swap that for S3 and store the object key in `filename` — the service interface stays the same.
 
 ---
 
-## What I'd Do Differently With More Time
+## Improvement Areas
 
-- **Token revocation** — short-lived JWTs with refresh tokens and a blocklist on logout. The current tokens live until expiry, which is fine for a demo but not for a system where a reviewer's account might be suspended mid-process.
-- **Database-level audit immutability** — PostgreSQL row-security policy as described above. The code-level guard is a reasonable start but not a production guarantee.
-- **Admin role** — a user who can grant or revoke REVIEWER and APPROVER access without touching the database directly. Currently role assignment happens at signup, which means there's no way to suspend a compromised account through the UI.
-- **Pagination** — both `/applications` and `/audit` return full result sets. That works at seed-data scale; it won't survive production volume.
-- **File storage** — local disk is fine for evaluation. An S3-compatible store is the obvious production path.
-- **Email notifications** — the applicant has no way to know their status changed unless they log in and check. A simple status-change email would close that gap.
-- **Test coverage** — the current suite covers the state machine, authorization guards, concurrent access, and the auth flow. Missing: document upload edge cases, the full clarification cycle end-to-end, and rate-limit behavior on auth endpoints.
-- **Dedicated test database** — integration tests currently run `sequelize.sync({ force: true })` against the same database configured in `.env`, which drops and recreates all tables. In a real project I'd add a `TEST_DATABASE_URL` environment variable and a Jest global setup that points Sequelize at a separate database, so running tests never touches development data.
+- **Token revocation** — short-lived JWTs with refresh tokens and a logout blocklist. Right now a token lives until it reaches expiration time, which is a problem if you need to suspend an account while still conducting review.
+- **Audit immutability at the database level** — a PostgreSQL row-security policy instead of just the code-level guard.
+- **Admin role** — At the moment we have two adminstrative roles reviewer and approver but I'd consider to add another admin role which can delete, add, or change priveleges of those two roles.
+- **Pagination** — `/applications` and `/audit` return everything. Fine at seed scale, not in production because it could be wrong UI&Ux and performance wise.
+- **File storage** — local disk works for a demo. S3 or equivalent for production.
+- **Email notifications** — Applicant should be notified via email, instead of manually logging in the sytem only to see the status of his application.
+- **Dedicated test database** — tests run `sequelize.sync({ force: true })` against whatever is in `.env`. A separate `TEST_DATABASE_URL` would stop tests from wiping development data.
