@@ -1,11 +1,7 @@
 import Link from 'next/link';
-import { Application } from '@/types';
 import { STATUS_LABELS, STATUS_COLORS } from '@/utils/constants';
 import { formatDate } from '@/utils/formatters';
-
-interface ApplicationCardProps {
-  application: Application;
-}
+import { ApplicationCardProps } from '@/types/components';
 
 export const ApplicationCard = ({ application }: ApplicationCardProps) => (
   <Link href={`/applications/${application.id}`}>
@@ -19,7 +15,7 @@ export const ApplicationCard = ({ application }: ApplicationCardProps) => (
           {STATUS_LABELS[application.status]}
         </span>
       </div>
-      <p className="text-xs text-gray-400 mt-4">Created {formatDate(application.created_at)}</p>
+      <p className="text-xs text-gray-400 mt-4">Created {formatDate(application.createdAt)}</p>
     </div>
   </Link>
 );

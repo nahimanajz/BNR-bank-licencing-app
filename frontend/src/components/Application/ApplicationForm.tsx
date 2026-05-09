@@ -4,16 +4,13 @@ import { useCreateApplication } from '@/hooks/useApplications';
 import { Button } from '@/components/Common/Button';
 import { ErrorAlert } from '@/components/Common/ErrorAlert';
 import { ApiError } from '@/types';
-
-interface FormValues {
-  institution_name: string;
-}
+import { ApplicationFormValues } from '@/types/forms';
 
 export const ApplicationForm = ({ onSuccess }: { onSuccess?: () => void }) => {
-  const { register, handleSubmit, reset, formState: { errors } } = useForm<FormValues>();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<ApplicationFormValues>();
   const mutation = useCreateApplication();
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = (values: ApplicationFormValues) => {
     mutation.mutate(values, {
       onSuccess: () => {
         reset();

@@ -13,15 +13,15 @@ module.exports = {
 
     const users = await queryInterface.sequelize.query(
       `SELECT id, email, role FROM users WHERE email IN (
-        'applicant@example.com', 'reviewer@example.com', 'approver@example.com'
+        'applicant@bnr.rw', 'reviewer@bnr.rw', 'approver@bnr.rw'
       )`,
       { type: queryInterface.sequelize.QueryTypes.SELECT }
     );
 
     const byEmail = Object.fromEntries(users.map((u) => [u.email, u]));
-    const applicant = byEmail['applicant@example.com'];
-    const reviewer = byEmail['reviewer@example.com'];
-    const approver = byEmail['approver@example.com'];
+    const applicant = byEmail['applicant@bnr.rw'];
+    const reviewer = byEmail['reviewer@bnr.rw'];
+    const approver = byEmail['approver@bnr.rw'];
 
     if (!applicant || !reviewer || !approver) {
       console.warn('Seed 002: users not found — run seed 001 first');

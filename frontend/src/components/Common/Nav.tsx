@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import { UserRole } from '@/types';
 import { Button } from './Button';
 
 export const Nav = () => {
@@ -16,7 +17,7 @@ export const Nav = () => {
 
   const links = [
     { href: '/applications', label: 'Applications' },
-    ...(user?.role === 'ADMIN' || user?.role === 'REVIEWER'
+    ...(user?.role === UserRole.REVIEWER || user?.role === UserRole.APPROVER
       ? [{ href: '/audit', label: 'Audit Log' }]
       : []),
   ];

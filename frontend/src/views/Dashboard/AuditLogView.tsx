@@ -53,7 +53,7 @@ export const AuditLogView = () => {
             <tbody>
               {logs.map((log, i) => (
                 <tr key={log.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                  <td className="px-4 py-3 text-xs text-gray-500">{formatDate(log.created_at)}</td>
+                  <td className="px-4 py-3 text-xs text-gray-500">{formatDate(log.createdAt)}</td>
                   <td className="px-4 py-3">#{log.application_id}</td>
                   <td className="px-4 py-3">
                     <span className="bg-bnr-dark/10 text-bnr-dark text-xs font-semibold px-2 py-0.5 rounded">

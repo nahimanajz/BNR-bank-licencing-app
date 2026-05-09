@@ -4,7 +4,7 @@ export class User extends Model {
   public id!: number;
   public email!: string;
   public password_hash!: string;
-  public role!: 'APPLICANT' | 'REVIEWER' | 'APPROVER' | 'ADMIN';
+  public role!: 'APPLICANT' | 'REVIEWER' | 'APPROVER';
   public full_name!: string | null;
   public readonly created_at!: Date;
   public readonly updated_at!: Date;
@@ -28,7 +28,7 @@ export const initUserModel = (sequelize: Sequelize): typeof User => {
         allowNull: false,
       },
       role: {
-        type: DataTypes.ENUM('APPLICANT', 'REVIEWER', 'APPROVER', 'ADMIN'),
+        type: DataTypes.ENUM('APPLICANT', 'REVIEWER', 'APPROVER'),
         allowNull: false,
         defaultValue: 'APPLICANT',
       },

@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
-import { Application, ApplicationStatus } from '@/types';
+import { ApplicationStatus, UserRole, ApiError } from '@/types';
+import { StateTransitionButtonProps } from '@/types/components';
+import { TransitionHandler } from '@/types/state-machine';
 import { useAuth } from '@/hooks/useAuth';
 import {
   useTransitionApplication,
@@ -10,13 +12,8 @@ import {
 import { Button } from '@/components/Common/Button';
 import { ErrorAlert } from '@/components/Common/ErrorAlert';
 import { getNextStates, TRANSITION_ACTIONS } from '@/utils/stateMachine';
-import { ApiError } from '@/types';
 
-interface Props {
-  application: Application;
-}
-
-export const StateTransitionButton = ({ application }: Props) => {
+export const StateTransitionButton = ({ application }: StateTransitionButtonProps) => {
   const { user } = useAuth();
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -33,10 +30,10 @@ export const StateTransitionButton = ({ application }: Props) => {
   // If this APPROVER is recorded as the reviewer, remove decide actions from the UI
   // entirely — don't let them click something the backend will reject.
   const isConflictedApprover =
-    user.role === 'APPROVER' && application.current_reviewer_id === user.id;
+    user.role === UserRole.APPROVER && application.current_reviewer_id === user.id;
 
   const nextStates = isConflictedApprover
-    ? allNextStates.filter((s) => s !== 'APPROVED' && s !== 'REJECTED')
+    ? allNextStates.filter((s) => s !== ApplicationStatus.APPROVED && s !== ApplicationStatus.REJECTED)
     : allNextStates;
 
   if (allNextStates.length === 0) return null;
@@ -65,7 +62,7 @@ export const StateTransitionButton = ({ application }: Props) => {
 
     if (action.requiresTextarea && !text.trim()) {
       setError(
-        action.handler === 'feedback'
+        action.handler === TransitionHandler.FEEDBACK
           ? 'Feedback is required'
           : 'Notes are required'
       );
@@ -74,12 +71,12 @@ export const StateTransitionButton = ({ application }: Props) => {
 
     setError(null);
 
-    if (action.handler === 'feedback') {
+    if (action.handler === TransitionHandler.FEEDBACK) {
       feedbackMutation.mutate(
         { id: application.id, feedback: text, version: application.version },
         { onError: (err) => setError((err as ApiError).message || 'Action failed') }
       );
-    } else if (action.handler === 'decide') {
+    } else if (action.handler === TransitionHandler.DECIDE) {
       decideMutation.mutate(
         {
           id: application.id,

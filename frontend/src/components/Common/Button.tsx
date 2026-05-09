@@ -1,14 +1,8 @@
 'use client';
 import React from 'react';
+import { ButtonProps, ButtonVariant } from '@/types/components';
 
-type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: Variant;
-  loading?: boolean;
-}
-
-const VARIANTS: Record<Variant, string> = {
+const VARIANTS: Record<ButtonVariant, string> = {
   primary: 'bg-bnr-teal hover:bg-teal-600 text-white',
   secondary: 'bg-bnr-blue hover:bg-blue-700 text-white',
   danger: 'bg-red-600 hover:bg-red-700 text-white',

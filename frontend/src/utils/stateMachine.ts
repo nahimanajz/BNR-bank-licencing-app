@@ -1,78 +1,71 @@
-import { ApplicationStatus, UserRole } from '@/types';
+import { ApplicationStatus, UserRole, DecisionValue } from '@/types';
+import { TransitionHandler, TransitionAction, TransitionMap } from '@/types/state-machine';
+
+export { TransitionHandler };
+export type { TransitionAction, TransitionMap };
 
 const ROLE_TRANSITIONS: Record<string, Partial<Record<ApplicationStatus, ApplicationStatus[]>>> = {
-  APPLICANT: {
-    DRAFT: ['SUBMITTED'],
-    CLARIFICATION_REQUESTED: ['RESUBMITTED'],
+  [UserRole.APPLICANT]: {
+    [ApplicationStatus.DRAFT]: [ApplicationStatus.SUBMITTED],
+    [ApplicationStatus.CLARIFICATION_REQUESTED]: [ApplicationStatus.RESUBMITTED],
   },
-  REVIEWER: {
-    SUBMITTED: ['UNDER_REVIEW'],
-    UNDER_REVIEW: ['CLARIFICATION_REQUESTED', 'DECISION_PENDING'],
-    RESUBMITTED: ['UNDER_REVIEW'],
+  [UserRole.REVIEWER]: {
+    [ApplicationStatus.SUBMITTED]: [ApplicationStatus.UNDER_REVIEW],
+    [ApplicationStatus.UNDER_REVIEW]: [ApplicationStatus.CLARIFICATION_REQUESTED, ApplicationStatus.DECISION_PENDING],
+    [ApplicationStatus.RESUBMITTED]: [ApplicationStatus.UNDER_REVIEW],
   },
-  APPROVER: {
-    DECISION_PENDING: ['APPROVED', 'REJECTED'],
+  [UserRole.APPROVER]: {
+    [ApplicationStatus.DECISION_PENDING]: [ApplicationStatus.APPROVED, ApplicationStatus.REJECTED],
   },
 };
 
-type Handler = 'transition' | 'feedback' | 'decide';
-
-export interface TransitionAction {
-  label: string;
-  variant: 'primary' | 'secondary' | 'danger' | 'ghost';
-  handler: Handler;
-  requiresTextarea: boolean;
-  textareaPlaceholder?: string;
-  decideValue?: 'APPROVE' | 'REJECT';
-}
-
-export const TRANSITION_ACTIONS: Partial<Record<ApplicationStatus, TransitionAction>> = {
-  SUBMITTED: {
+export const TRANSITION_ACTIONS: TransitionMap = {
+  [ApplicationStatus.SUBMITTED]: {
     label: 'Submit Application',
     variant: 'primary',
-    handler: 'transition',
+    handler: TransitionHandler.TRANSITION,
     requiresTextarea: false,
   },
-  UNDER_REVIEW: {
+  [ApplicationStatus.UNDER_REVIEW]: {
     label: 'Start Review',
     variant: 'primary',
-    handler: 'transition',
+    handler: TransitionHandler.TRANSITION,
     requiresTextarea: false,
   },
-  CLARIFICATION_REQUESTED: {
+  [ApplicationStatus.CLARIFICATION_REQUESTED]: {
     label: 'Request Clarification',
     variant: 'ghost',
-    handler: 'feedback',
+    handler: TransitionHandler.FEEDBACK,
     requiresTextarea: true,
     textareaPlaceholder: 'Describe what the applicant needs to provide...',
   },
-  RESUBMITTED: {
+  [ApplicationStatus.RESUBMITTED]: {
     label: 'Mark as Resubmitted',
     variant: 'primary',
-    handler: 'transition',
+    handler: TransitionHandler.TRANSITION,
     requiresTextarea: false,
   },
-  DECISION_PENDING: {
+  [ApplicationStatus.DECISION_PENDING]: {
     label: 'Send for Decision',
     variant: 'secondary',
-    handler: 'transition',
+    handler: TransitionHandler.TRANSITION,
     requiresTextarea: false,
   },
-  APPROVED: {
+  [ApplicationStatus.APPROVED]: {
     label: 'Approve',
     variant: 'primary',
-    handler: 'decide',
+    handler: TransitionHandler.DECIDE,
     requiresTextarea: true,
     textareaPlaceholder: 'Decision notes...',
-    decideValue: 'APPROVE',
+    decideValue: DecisionValue.APPROVE,
   },
-  REJECTED: {
+  [ApplicationStatus.REJECTED]: {
     label: 'Reject',
     variant: 'danger',
-    handler: 'decide',
+    handler: TransitionHandler.DECIDE,
     requiresTextarea: true,
     textareaPlaceholder: 'Decision notes...',
-    decideValue: 'REJECT',
+    decideValue: DecisionValue.REJECT,
   },
 };
 

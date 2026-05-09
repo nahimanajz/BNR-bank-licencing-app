@@ -1,12 +1,7 @@
 'use client';
-import { Document } from '@/types';
 import { formatDate, formatFileSize } from '@/utils/formatters';
 import { documentService } from '@/services/document.service';
-
-interface DocumentListProps {
-  documents: Document[];
-  applicationId: number;
-}
+import { DocumentListProps } from '@/types/components';
 
 export const DocumentList = ({ documents, applicationId }: DocumentListProps) => {
   if (documents.length === 0) {
@@ -23,7 +18,7 @@ export const DocumentList = ({ documents, applicationId }: DocumentListProps) =>
           <div>
             <span className="font-medium text-bnr-dark">{doc.original_name}</span>
             <span className="ml-3 text-gray-400 text-xs">
-              {formatFileSize(doc.file_size)} · v{doc.version} · {formatDate(doc.created_at)}
+              {formatFileSize(doc.file_size)} · v{doc.version} · {formatDate(doc.createdAt)}
             </span>
           </div>
           <button
