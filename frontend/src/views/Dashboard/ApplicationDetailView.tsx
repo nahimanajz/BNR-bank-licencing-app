@@ -1,21 +1,30 @@
 'use client';
 import Link from 'next/link';
 import { useApplication } from '@/hooks/useApplications';
+import { useDocuments } from '@/hooks/useDocuments';
 import { useAuth } from '@/hooks/useAuth';
 import { StateTransitionButton } from '@/components/Application/StateTransitionButton';
+import { DocumentList } from '@/components/Documents/DocumentList';
+import { DocumentUpload } from '@/components/Documents/DocumentUpload';
 import { FeedbackDisplay } from '@/components/Feedback/FeedbackDisplay';
 import { LoadingSpinner } from '@/components/Common/LoadingSpinner';
 import { ErrorAlert } from '@/components/Common/ErrorAlert';
 import { STATUS_LABELS, STATUS_COLORS } from '@/utils/constants';
 import { formatDate } from '@/utils/formatters';
-import { ApiError, ApplicationStatus } from '@/types';
+import { ApiError, UserRole, ApplicationStatus } from '@/types';
 
 export const ApplicationDetailView = ({ id }: { id: number }) => {
   const { user } = useAuth();
   const { data: app, isLoading, isError, error } = useApplication(id);
+  const { data: documents = [] } = useDocuments(id);
 
   if (isLoading) return <LoadingSpinner />;
   if (isError || !app) return <ErrorAlert message={(error as ApiError)?.message || 'Application not found'} />;
+
+  const canUpload =
+    user?.role === UserRole.APPLICANT &&
+    app.applicant_id === user.id &&
+    [ApplicationStatus.DRAFT, ApplicationStatus.CLARIFICATION_REQUESTED].includes(app.status);
 
   return (
     <div className="space-y-6">
@@ -65,6 +74,17 @@ export const ApplicationDetailView = ({ id }: { id: number }) => {
       <div className="bg-white rounded-xl border border-gray-200 p-6">
         <h2 className="font-semibold text-bnr-dark mb-4">Actions</h2>
         <StateTransitionButton application={app} />
+      </div>
+
+      {/* Documents */}
+      <div className="bg-white rounded-xl border border-gray-200 p-6">
+        <h2 className="font-semibold text-bnr-dark mb-4">Documents</h2>
+        {canUpload && (
+          <div className="mb-4">
+            <DocumentUpload applicationId={id} />
+          </div>
+        )}
+        <DocumentList documents={documents} applicationId={id} />
       </div>
     </div>
   );
