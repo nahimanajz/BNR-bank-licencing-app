@@ -12,12 +12,13 @@ The design document is at [`DESIGN-DOCUMENT.md`](DESIGN-DOCUMENT.md). It covers 
 
 - Node.js 18+
 - PostgreSQL running locally
+- PgAdmin is nice too have
 
 ### Backend
 
 ```bash
 cd backend
-cp .env.example .env        # fill in DATABASE_URL and JWT_SECRET
+cp .env.example .env        # fill in DATABASE environment variables and JWT_SECRET
 npm install
 createdb bank_licensing
 npm run migrate             # runs Sequelize migrations
