@@ -2,7 +2,7 @@
 
 A regulatory portal for Rwanda's National Bank to manage commercial bank licensing applications end-to-end — from submission through review, clarification, and final approval.
 
-The design document is at [`docs/DESIGN-DOCUMENT.md`](docs/DESIGN-DOCUMENT.md). It covers the architecture, data model, state machine, role boundaries, and the reasoning behind every hard decision.
+The design document is at [`DESIGN-DOCUMENT.md`](DESIGN-DOCUMENT.md). It covers the architecture, data model, state machine, role boundaries, and the reasoning behind every hard decision.
 
 ---
 
@@ -44,7 +44,7 @@ npm run dev                 # starts the app on http://localhost:3000
 | REVIEWER  | reviewer@bnr.rw     | password123 |
 | APPROVER  | approver@bnr.rw     | password123 |
 
-The seed also creates four applications in different states (SUBMITTED, UNDER_REVIEW, DECISION_PENDING, APPROVED) so you can explore the full workflow without manual setup.
+The seed also creates four applications in different states ( 'DRAFT','SUBMITTED','UNDER_REVIEW','CLARIFICATION_REQUESTED','RESUBMITTED','DECISION_PENDING','APPROVED','REJECTED') so you can explore the full workflow without manual setup.
 
 ---
 
@@ -80,9 +80,5 @@ Explicitly tests the concurrent access requirement. Two PATCH requests are fired
 
 ---
 
-## Why there are two entry files: `app.ts` and `server.ts`
 
-`app.ts` creates and exports the Express application — middleware, routes, error handler — without starting a server or connecting to the database. This matters for testing: the integration tests import `app` directly and hand it to `supertest`, which handles its own port binding. If the database connection and `listen()` call lived inside `app.ts`, every test import would trigger a real TCP server and a real database connection attempt.
-
-`server.ts` is the production entry point only. It imports `app`, connects to the database, and calls `app.listen()`. It is never imported by tests.
 
